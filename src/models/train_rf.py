@@ -1,5 +1,4 @@
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 import pandas as pd
 
@@ -15,10 +14,10 @@ def train_rf(data_path):
 
     print("Data shape after removing duplicates:", df.shape)
 
-    # separate label
+    # label
     y = df["Label"]
 
-    # remove label + identifier columns
+    # remove identifiers
     X = df.drop(columns=[
         "Label",
         "Flow ID",
@@ -27,17 +26,17 @@ def train_rf(data_path):
         "Timestamp"
     ], errors="ignore")
 
-    # keep numeric features only
+    # keep numeric only
     X = X.select_dtypes(include=["number"])
 
-    # split
-    X_train, X_test, y_train, y_test = train_test_split(
-        X,
-        y,
-        test_size=0.2,
-        random_state=42,
-        stratify=y
-    )
+    # sequential split (no shuffle)
+    split_index = int(0.8 * len(X))
+
+    X_train = X.iloc[:split_index]
+    X_test = X.iloc[split_index:]
+
+    y_train = y.iloc[:split_index]
+    y_test = y.iloc[split_index:]
 
     print("Train:", X_train.shape, "Test:", X_test.shape)
 
