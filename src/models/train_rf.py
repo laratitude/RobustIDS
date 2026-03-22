@@ -15,11 +15,22 @@ def train_rf(data_path):
 
     print("Data shape after removing duplicates:", df.shape)
 
+    # separate label
     y = df["Label"]
-    X = df.drop(columns=["Label"])
 
+    # remove label + identifier columns
+    X = df.drop(columns=[
+        "Label",
+        "Flow ID",
+        "Source IP",
+        "Destination IP",
+        "Timestamp"
+    ], errors="ignore")
+
+    # keep numeric features only
     X = X.select_dtypes(include=["number"])
 
+    # split
     X_train, X_test, y_train, y_test = train_test_split(
         X,
         y,
@@ -30,6 +41,7 @@ def train_rf(data_path):
 
     print("Train:", X_train.shape, "Test:", X_test.shape)
 
+    # model
     model = RandomForestClassifier(
         n_estimators=100,
         random_state=42
@@ -44,5 +56,4 @@ def train_rf(data_path):
 
 
 if __name__ == "__main__":
-    train_rf("../../data/processed/data.csv")
-    
+    train_rf("data/processed/data.csv")
