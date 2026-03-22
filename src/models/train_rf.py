@@ -6,21 +6,44 @@ import pandas as pd
 def train_rf(data_path):
     df = pd.read_csv(data_path)
 
-    df = df.select_dtypes(include=['number'])
+    print("Data shape before cleaning:", df.shape)
 
-    X = df.drop("Label", axis=1)
+    # remove duplicate rows
+    df = df.drop_duplicates()
+
+    print("Data shape after removing duplicates:", df.shape)
+
+    # split features and label
     y = df["Label"]
+    X = df.drop(columns=["Label"])
 
+    # keep only numeric columns
+    X = X.select_dtypes(include=["number"])
+
+    # train/test split
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42
+        X,
+        y,
+        test_size=0.2,
+        random_state=42,
+        stratify=y
     )
 
-    model = RandomForestClassifier(n_estimators=50)
+    print("Train:", X_train.shape, "Test:", X_test.shape)
+
+    # train model
+    model = RandomForestClassifier(
+        n_estimators=100,
+        random_state=42
+    )
+
     model.fit(X_train, y_train)
 
     preds = model.predict(X_test)
 
+    print("\nClassification Report:\n")
     print(classification_report(y_test, preds))
+
 
 if __name__ == "__main__":
     train_rf("data/processed/data.csv")
