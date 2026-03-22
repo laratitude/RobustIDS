@@ -44,5 +44,5 @@ def train_rf(data_path):
 
 
 if __name__ == "__main__":
-    train_rf("data/processed/data.csv")
+    train_rf("../../data/processed/data.csv")
     
