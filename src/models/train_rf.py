@@ -17,19 +17,23 @@ def train_rf(data_path):
     # label
     y = df["Label"]
 
-    # remove identifiers
-    X = df.drop(columns=[
+    # remove identifiers and high leakage features
+    drop_cols = [
         "Label",
         "Flow ID",
         "Source IP",
         "Destination IP",
-        "Timestamp"
-    ], errors="ignore")
+        "Timestamp",
+        "Flow Bytes/s",
+        "Flow Packets/s"
+    ]
+
+    X = df.drop(columns=drop_cols, errors="ignore")
 
     # keep numeric only
     X = X.select_dtypes(include=["number"])
 
-    # sequential split (no shuffle)
+    # sequential split
     split_index = int(0.8 * len(X))
 
     X_train = X.iloc[:split_index]
@@ -56,3 +60,4 @@ def train_rf(data_path):
 
 if __name__ == "__main__":
     train_rf("../../data/processed/data.csv")
+    
