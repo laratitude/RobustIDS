@@ -5,51 +5,41 @@ import pandas as pd
 def train_rf(data_path):
     df = pd.read_csv(data_path)
 
-    print(df.columns)
-    print(df.head())
+    # fix column names
+    df.columns = df.columns.str.strip()
 
-    print("Data shape before cleaning:", df.shape)
+    print("Data shape:", df.shape)
 
+    # remove duplicates
     df = df.drop_duplicates()
 
-    print("Data shape after removing duplicates:", df.shape)
-
-    # label
+    # target
     y = df["Label"]
 
-    # remove identifiers and high leakage features
-    drop_cols = [
+    # drop non-useful columns
+    X = df.drop(columns=[
         "Label",
         "Flow ID",
         "Source IP",
         "Destination IP",
-        "Timestamp",
-        "Flow Bytes/s",
-        "Flow Packets/s"
-    ]
+        "Timestamp"
+    ], errors="ignore")
 
-    X = df.drop(columns=drop_cols, errors="ignore")
-
-    # keep numeric only
+    # keep only numeric
     X = X.select_dtypes(include=["number"])
 
-    # sequential split
-    split_index = int(0.8 * len(X))
+    # simple split
+    split = int(0.8 * len(X))
 
-    X_train = X.iloc[:split_index]
-    X_test = X.iloc[split_index:]
+    X_train = X.iloc[:split]
+    X_test = X.iloc[split:]
 
-    y_train = y.iloc[:split_index]
-    y_test = y.iloc[split_index:]
+    y_train = y.iloc[:split]
+    y_test = y.iloc[split:]
 
     print("Train:", X_train.shape, "Test:", X_test.shape)
 
-    # model
-    model = RandomForestClassifier(
-        n_estimators=100,
-        random_state=42
-    )
-
+    model = RandomForestClassifier(n_estimators=100, random_state=42)
     model.fit(X_train, y_train)
 
     preds = model.predict(X_test)
@@ -60,4 +50,3 @@ def train_rf(data_path):
 
 if __name__ == "__main__":
     train_rf("../../data/processed/data.csv")
-    
