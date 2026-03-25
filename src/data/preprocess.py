@@ -1,46 +1,26 @@
 import pandas as pd
-import glob
 import os
 
-def load_and_merge_data(path):
-    files = glob.glob(os.path.join(path, "*.csv"))
-    df_list = []
+def preprocess_data(input_dir, output_path):
+    all_files = [f for f in os.listdir(input_dir) if f.endswith(".csv")]
 
-    for file in files:
-        print(f"Loading {file}")
-        df = pd.read_csv(file, low_memory=False)
-        df_list.append(df)
+    dfs = []
 
-    combined_df = pd.concat(df_list, ignore_index=True)
-    return combined_df
+    for file in all_files:
+        file_path = os.path.join(input_dir, file)
+        print(f"Loading {file_path}")
+        df = pd.read_csv(file_path)
 
-def clean_data(df):
-    # Remove spaces in column names
-    df.columns = df.columns.str.strip()
+        dfs.append(df)
 
-    # Replace infinity values
-    df.replace([float('inf'), -float('inf')], pd.NA, inplace=True)
+    print("Combining files...")
+    combined_df = pd.concat(dfs, ignore_index=True)
 
-    # Drop missing values
-    df = df.dropna()
+    print("Saving processed data...")
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    combined_df.to_csv(output_path, index=False)
 
-    return df
-
-def main():
-    raw_path = "data/raw"
-    output_path = "data/processed/data.csv"
-
-    df = load_and_merge_data(raw_path)
-    df = clean_data(df)
-
-    # Convert labels to binary
-    df["Label"] = df["Label"].apply(lambda x: 0 if x == "BENIGN" else 1)
-
-    # Save
-    os.makedirs("data/processed", exist_ok=True)
-    df.to_csv(output_path, index=False)
-
-    print("✅ Data preprocessing complete!")
+    print("Data preprocessing complete!")
 
 if __name__ == "__main__":
-    main()
+    preprocess_data("data/raw", "data/processed/data.csv")
