@@ -8,9 +8,8 @@ def preprocess_data(input_dir, output_path):
 
     for file in all_files:
         file_path = os.path.join(input_dir, file)
-        print(f"Loading {file_path}")
+        print("Loading:", file_path)
         df = pd.read_csv(file_path)
-
         dfs.append(df)
 
     print("Combining files...")
@@ -20,7 +19,7 @@ def preprocess_data(input_dir, output_path):
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     combined_df.to_csv(output_path, index=False)
 
-    print("Data preprocessing complete!")
+    print("Done.")
 
 if __name__ == "__main__":
-    preprocess_data("data/raw", "data/processed/data.csv")
+    preprocess_data("../../data/raw", "../../data/processed/data.csv")
