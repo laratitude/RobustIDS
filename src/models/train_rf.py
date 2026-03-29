@@ -6,24 +6,18 @@ import numpy as np
 def train_rf(data_path):
     df = pd.read_csv(data_path)
 
-    # clean column names
     df.columns = df.columns.str.strip()
 
     print("Data shape before cleaning:", df.shape)
 
-    # remove duplicates
     df = df.drop_duplicates()
-
-    # handle invalid values
     df = df.replace([np.inf, -np.inf], np.nan)
     df = df.dropna()
 
     print("Data shape after cleaning:", df.shape)
 
-    # target
     y = df["Label"]
 
-    # drop non-useful columns
     X = df.drop(columns=[
         "Label",
         "Flow ID",
@@ -32,10 +26,8 @@ def train_rf(data_path):
         "Timestamp"
     ], errors="ignore")
 
-    # keep numeric only
     X = X.select_dtypes(include=["number"])
 
-    # split (sequential)
     split = int(0.8 * len(X))
 
     X_train = X.iloc[:split]
@@ -44,16 +36,30 @@ def train_rf(data_path):
     y_train = y.iloc[:split]
     y_test = y.iloc[split:]
 
-    print("Train:", X_train.shape, "Test:", X_test.shape)
+    print("Before balancing:")
+    print(y_train.value_counts())
 
-    # 🔥 FIX: handle class imbalance
+    # 🔥 Oversample minority classes
+    train_df = pd.concat([X_train, y_train], axis=1)
+
+    max_size = train_df["Label"].value_counts().max()
+
+    balanced_df = train_df.groupby("Label").apply(
+        lambda x: x.sample(max_size, replace=True)
+    ).reset_index(drop=True)
+
+    print("\nAfter balancing:")
+    print(balanced_df["Label"].value_counts())
+
+    X_train_balanced = balanced_df.drop("Label", axis=1)
+    y_train_balanced = balanced_df["Label"]
+
     model = RandomForestClassifier(
         n_estimators=100,
-        random_state=42,
-        class_weight="balanced"
+        random_state=42
     )
 
-    model.fit(X_train, y_train)
+    model.fit(X_train_balanced, y_train_balanced)
 
     preds = model.predict(X_test)
 
