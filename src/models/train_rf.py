@@ -6,7 +6,7 @@ import numpy as np
 def train_rf(data_path):
     df = pd.read_csv(data_path)
 
-    # fix column names
+    # clean column names
     df.columns = df.columns.str.strip()
 
     print("Data shape before cleaning:", df.shape)
@@ -14,7 +14,7 @@ def train_rf(data_path):
     # remove duplicates
     df = df.drop_duplicates()
 
-    # handle bad values
+    # handle invalid values
     df = df.replace([np.inf, -np.inf], np.nan)
     df = df.dropna()
 
@@ -32,10 +32,10 @@ def train_rf(data_path):
         "Timestamp"
     ], errors="ignore")
 
-    # keep only numeric
+    # keep numeric only
     X = X.select_dtypes(include=["number"])
 
-    # split
+    # split (sequential)
     split = int(0.8 * len(X))
 
     X_train = X.iloc[:split]
@@ -46,10 +46,11 @@ def train_rf(data_path):
 
     print("Train:", X_train.shape, "Test:", X_test.shape)
 
-    # model
+    # 🔥 FIX: handle class imbalance
     model = RandomForestClassifier(
         n_estimators=100,
-        random_state=42
+        random_state=42,
+        class_weight="balanced"
     )
 
     model.fit(X_train, y_train)
