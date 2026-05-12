@@ -11,6 +11,7 @@ def train_rf(data_path):
     print("Data shape before cleaning:", df.shape)
 
     df = df.drop_duplicates()
+
     df = df.replace([np.inf, -np.inf], np.nan)
     df = df.dropna()
 
@@ -36,14 +37,16 @@ def train_rf(data_path):
     y_train = y.iloc[:split]
     y_test = y.iloc[split:]
 
-    print("Before balancing:")
+    print("\nBefore balancing:")
     print(y_train.value_counts())
 
-    # 🔥 Oversample minority classes
+    # combine features + labels
     train_df = pd.concat([X_train, y_train], axis=1)
 
+    # get largest class size
     max_size = train_df["Label"].value_counts().max()
 
+    # oversample smaller classes
     balanced_df = train_df.groupby("Label").apply(
         lambda x: x.sample(max_size, replace=True)
     ).reset_index(drop=True)
@@ -51,9 +54,11 @@ def train_rf(data_path):
     print("\nAfter balancing:")
     print(balanced_df["Label"].value_counts())
 
+    # split balanced data
     X_train_balanced = balanced_df.drop("Label", axis=1)
     y_train_balanced = balanced_df["Label"]
 
+    # model
     model = RandomForestClassifier(
         n_estimators=100,
         random_state=42
